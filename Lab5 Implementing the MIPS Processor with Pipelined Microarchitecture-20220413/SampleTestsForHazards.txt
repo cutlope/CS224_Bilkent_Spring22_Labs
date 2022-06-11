@@ -1,0 +1,57 @@
+// Assemble and place the codes in imem module for testing.
+
+// Test code for no hazards
+8'h00: instr = 32'h20080005;    // addi $t0, $zero, 5              
+8'h04: instr = 32'h2009000c;    // addi $t1, $zero, 12
+8'h08: instr = 32'h200a0006;    // addi $t2, $zero, 6
+8'h0c: instr = 32'h210bfff7;    // addi $t3, $t0, -9
+8'h10: instr = 32'h01288025;    // or $s0, $t1, $t0
+8'h14: instr = 32'h012a8824;    // and $s1, $t1, $t2
+8'h18: instr = 32'h010b9020;    // add $s2, $t0, $t3
+8'h1c: instr = 32'h010a202a;    // slt $a0, $t0, $t2
+8'h20: instr = 32'h02112820;    // add $a1, $s0, $s1
+8'h24: instr = 32'h02493022;    // sub $a2, $s2, $t1
+8'h28: instr = 32'had320074;    // sw $s2, 0x74($t1)
+8'h2c: instr = 32'h8c020080;    // lw $v0, 0x80($zero)
+
+// Test code for compute-use hazards
+addi $t0, $zero, 5                 0x20080005
+addi $t1, $t0, 7			0x21090007
+addi $t2, $t0, 2		 0x210A0002
+or $t2, $t1, $t2		0x012A5025
+and $s0, $t2, $t1			0x01498024
+add $s1, $t0, $s0			0x01108820
+slt $s2, $t2, $s1			0x0151902A
+add $s1, $s1, $s1			0x02318820
+sub $s3, $s1, $s2			0x02329822
+sw $s3, 0x74($t1)			0xAD330074
+lw $v0, 0x80($zero)			0x8C020080
+
+// Test code for load-use hazard
+addi $t0, $zero, 5              0x20080005
+sw $t0, 0x60($zero)		0xAC080060
+lw $t1, 0x60($zero)		0x8C090060
+addi $t2, $t1, 4                212A0004
+addi $t3, $t1, 3		212B0003
+lw $t3, 0x58($t3)		8D6B0058
+sub $t2, $t2, $t3		014B5022
+sw $t2, 0x70($zero)		AC0A0070
+lw $t0, 0x70($zero)		8C080070
+lw $t1, 0x6c($t0)		8D09006C
+add $t1, $t0, $t1		01094820
+
+// Test code for branch hazards
+addi $t0, $zero, 5 		0x20080005
+addi $t1, $zero, 3		0x20090005
+beq $t0, $t1, 2			0x11090002
+add $t2, $t1, $t0		0x01285020
+sub $t0, $t0, $t1		0x01094022
+addi $t1, $t1, 1		0x21290001
+beq $t1, $t0, 2			0x11280002
+sw $t2, 0x50($zero)		0xAC0A0050
+or $t0, $t1, $t0		0x01284025
+slt $t1, $t1, $t0		0x0128482A
+beq $t1, $zero, 2		0x11200002
+lw $t3, 0x50($zero)		0x8C0B0050
+and $t0, $t1, $t0 		0x01284024
+beq $t0, $t0, -1 		0x110800F1

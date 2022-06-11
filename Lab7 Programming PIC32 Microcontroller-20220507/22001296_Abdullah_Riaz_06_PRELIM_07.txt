@@ -1,0 +1,144 @@
+CS224 / Lab No. 7
+Sec No: 6
+Your Name: Abdullah Riaz
+Your ID: 22001296
+
+
+a) TRISA , PORTA, TRISE , PORTE
+
+b) C code for Part2b
+
+void main()
+{
+
+    AD1PCFG = 0xFFFF;
+
+    DDPCON.JTAGEN = 0; // disable JTAG
+
+    TRISA = 0x0000; // portA is output
+    TRISE = 0XFFFF; // portE is inputs
+
+    PORTE = 0X0000; // reset inputs
+
+    while (1)
+    {
+        if (PORTEbits.RE0 && PORTEbits.RE1) // check if both are pressed
+        {
+            PORTA = 0X0000; // output 0 for motor
+        }
+
+        PORTAbits.RA0 = PORTEbits.RE0; // read push-buttons
+        PORTAbits.RA1 = PORTEbits.RE1;
+    } // while
+
+} // main
+
+c) TRISA , PORTA, TRISE , PORTE
+
+d) C code for Part2c
+
+/*
+Configuration for the code below:
+
+Connect portA to J1 Port of 4 Digit Seven Segment Module
+Jumpers of portA are : 5V, pull down ( top one to left, other to right )
+
+Connect portE to J2 Port of 4 Digit Seven Segment Module
+Jumpers of portE are : 5V, pull down ( top one to left, other to right )
+
+*/
+
+// Hexadecimal values for digits in 7 segment
+unsigned char binary_pattern[]={0x3F,0x06,0x5B,0x4F,0x66,0x6D,0x7D,0x07,0x7F,0x6F};
+int d1 = 1; // selector for the digit
+int d2 = 2; // selector for the digit
+int d3 = 3; // selector for the digit
+int d4 = 4; // selector for the digit
+
+void main()
+{
+
+    AD1PCFG = 0xFFFF; // Configure AN pins as digital I/O
+    JTAGEN_bit = 0;   // Disable JTAG
+
+    TRISA = 0x00; // portA is output to D
+    TRISE = 0X00; // portE is output to AN
+
+    while (1)
+    {
+        for (int i = 0; i < 251; i++) // 1 run has 4 delays of 1ms each so running for 250 ms will give 1 second
+        {
+
+            // Digit 1
+            PORTA = binary_pattern[d1++];
+            PORTE = 0x01;
+            Delay_ms(1);
+
+            // Digit 2
+            PORTA = binary_pattern[d2++]; // Put 2 to the second digit
+            PORTE = 0x02;                 // Open second digit
+            Delay_ms(1);
+
+            // Digit 3
+            PORTA = binary_pattern[d3++];
+            PORTE = 0x04;
+            Delay_ms(1);
+
+            // Digit 4
+            PORTA = binary_pattern[d4++];
+            PORTE = 0x08;
+            Delay_ms(1);
+
+            // overflow check
+            if (d1 >= 9)
+            {
+                d1 = 0;
+            }
+            if (d2 >= 9)
+            {
+                d2 = 0;
+            }
+            if (d3 >= 9)
+            {
+                d3 = 0;
+            }
+            if (d4 >= 9)
+            {
+                d4 = 0;
+            }
+        }
+    }
+
+} // main
+
+e) TRISA , PORTA, TRISE , PORTE
+
+f) C code for Part2d
+
+void main()
+{
+    AD1PCFG = 0xFFFF;
+
+    DDPCON.JTAGEN = 0; // disable JTAG
+
+    TRISA = 0x0000; // portA is output
+    TRISE = 0XFFFF; // portE is inputs
+
+    PORTA = 0x00000001; // portA is output
+
+    while (1)
+    {
+        if (PORTEbits.RE0 == 1)
+        {
+            PORTA << 1; // shift left on left button
+        }
+        if (PORTEbits.RE1 == 1)
+        {
+            PORTA >> 1; // shift right on right button
+        }
+        if (PORTEbits.RE2 == 1)
+        {
+            PORTA = 0x00000000;
+        }
+    }
+}
